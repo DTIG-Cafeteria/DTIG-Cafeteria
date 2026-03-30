@@ -1,121 +1,53 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>DTIG Cafeteria</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
 
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
+<!-- Razorpay -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
 <style>
-body {font-family:Poppins; margin:0; background:#fafafa;}
-
-/* HERO */
-.hero {
-  background:linear-gradient(135deg,#ff5200,#ff8c42);
-  padding:20px;
-  color:white;
-}
-.search {
-  background:white;
-  padding:10px;
-  border-radius:10px;
-  margin-top:10px;
-}
-
-/* CATEGORY */
-.categories {
-  display:flex;
-  overflow:auto;
-  padding:10px;
-}
-.cat {
-  background:white;
-  padding:8px 15px;
-  border-radius:20px;
-  margin-right:10px;
-  box-shadow:0 2px 6px rgba(0,0,0,0.1);
-}
-
-/* GRID */
-.grid {
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:12px;
-  padding:12px;
-}
-
-.card {
-  background:white;
-  border-radius:15px;
-  overflow:hidden;
-  box-shadow:0 4px 12px rgba(0,0,0,0.1);
-  transition:0.3s;
-}
-.card:hover {transform:scale(1.05);}
-
-.card img {
-  width:100%;
-  height:120px;
-  object-fit:cover;
-}
-
-.card-body {padding:10px;}
-
-.btn {
-  background:#ff5200;
-  color:white;
-  border:none;
-  padding:6px;
-  border-radius:8px;
-  width:100%;
-}
-
-/* CART */
-.cart-panel {
-  position:fixed;
-  bottom:0;
-  width:100%;
-  background:white;
-  padding:10px;
-  box-shadow:0 -4px 10px rgba(0,0,0,0.1);
-}
-
-.order-btn {
-  background:green;
-  color:white;
-  border:none;
-  padding:10px;
-  width:100%;
-  border-radius:10px;
-}
+body {font-family:Poppins;margin:0;background:#fafafa;}
+.header {background:#ff5200;color:white;padding:15px;text-align:center;}
+.login {padding:20px;text-align:center;}
+input {padding:10px;margin:5px;width:80%;}
+button {padding:10px;background:#ff5200;color:white;border:none;}
+.grid {display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:10px;}
+.card {background:white;padding:10px;border-radius:10px;}
+.cart {position:fixed;bottom:0;width:100%;background:white;padding:10px;display:flex;justify-content:space-between;}
 </style>
 </head>
 
 <body>
 
-<div class="hero">
-  <h2>🍽️ DTIG Cafeteria</h2>
-  <div class="search">🔍 Search food...</div>
+<div class="header">🍽️ DTIG Cafeteria</div>
+
+<div id="loginDiv" class="login">
+  <h3>Login</h3>
+  <input id="email" placeholder="Email"><br>
+  <input id="password" type="password" placeholder="Password"><br>
+  <button onclick="login()">Login</button>
 </div>
 
-<div class="categories">
-  <div class="cat">🔥 Popular</div>
-  <div class="cat">☕ Drinks</div>
-  <div class="cat">🍔 Snacks</div>
-</div>
+<div id="app" style="display:none;">
+  <div class="grid" id="menu"></div>
 
-<div class="grid" id="menu"></div>
-
-<div class="cart-panel">
-  Total: ₹<span id="total">0</span>
-  <button class="order-btn" onclick="placeOrder()">Place Order</button>
+  <div class="cart">
+    ₹<span id="total">0</span>
+    <button onclick="pay()">Pay</button>
+  </div>
 </div>
 
 <script>
-// Firebase
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyAPvkEd6A6Gy2Ar7zuG_fCAPecuj2joFN4",
   authDomain: "dtig-cafeteria.firebaseapp.com",
@@ -123,30 +55,37 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
 const db = firebase.firestore();
 
 let cart=[];
 
+// LOGIN
+function login(){
+  let email=document.getElementById("email").value;
+  let pass=document.getElementById("password").value;
+
+  auth.signInWithEmailAndPassword(email,pass)
+  .then(()=>{
+    document.getElementById("loginDiv").style.display="none";
+    document.getElementById("app").style.display="block";
+  })
+  .catch(()=>alert("Login failed"));
+}
+
+// MENU
 const items=[
-{name:"Tea",price:10,img:"https://source.unsplash.com/300x200/?tea"},
-{name:"Coffee",price:20,img:"https://source.unsplash.com/300x200/?coffee"},
-{name:"Burger",price:80,img:"https://source.unsplash.com/300x200/?burger"},
-{name:"Fries",price:40,img:"https://source.unsplash.com/300x200/?fries"},
-{name:"Momos",price:60,img:"https://source.unsplash.com/300x200/?momos"},
-{name:"Chicken",price:120,img:"https://source.unsplash.com/300x200/?chicken"}
+{name:"Tea",price:10},
+{name:"Burger",price:80},
+{name:"Fries",price:40}
 ];
 
 function loadMenu(){
 let html="";
 items.forEach(i=>{
-html+=`
-<div class="card">
-<img src="${i.img}">
-<div class="card-body">
-<h4>${i.name}</h4>
-<p>₹${i.price}</p>
-<button class="btn" onclick='add(${JSON.stringify(i)})'>Add</button>
-</div>
+html+=`<div class="card">
+${i.name}<br>₹${i.price}
+<button onclick='add(${JSON.stringify(i)})'>Add</button>
 </div>`;
 });
 document.getElementById("menu").innerHTML=html;
@@ -162,17 +101,34 @@ document.getElementById("total").innerText=
 cart.reduce((s,i)=>s+i.price,0);
 }
 
-function placeOrder(){
-let phone=prompt("Enter WhatsApp Number:");
+// PAYMENT
+function pay(){
 let total=cart.reduce((s,i)=>s+i.price,0);
+
+var options={
+key:"YOUR_RAZORPAY_KEY",
+amount:total*100,
+currency:"INR",
+handler:function(){
+  saveOrder();
+}
+};
+
+new Razorpay(options).open();
+}
+
+// SAVE ORDER
+function saveOrder(){
 let token="DTIG"+Math.floor(Math.random()*9999);
 
 db.collection("orders").add({
-items:cart,total,token,phone,status:"Preparing"
+items:cart,
+token:token,
+status:"Preparing",
+user:auth.currentUser.email
 });
 
-window.open(`https://wa.me/91${phone}?text=Token:${token}%20Amount:₹${total}`);
-alert("Order Placed! Token:"+token);
+alert("Order placed! Token:"+token);
 cart=[];
 update();
 }
