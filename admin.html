@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DTIG Cafeteria Admin</title>
+</head>
+
+<body>
+
+<h1>Kitchen Orders 👨‍🍳</h1>
+
+<button onclick="load()">Load Orders</button>
+
+<ul id="orders"></ul>
+
+<button onclick="ready()">Mark Ready</button>
+
+<script>
+function load(){
+    let data = JSON.parse(localStorage.getItem("order"));
+    let list = document.getElementById("orders");
+    list.innerHTML = "";
+
+    data.forEach(i => {
+        let li = document.createElement("li");
+        li.innerText = i.item + " - ₹" + i.price;
+        list.appendChild(li);
+    });
+}
+
+function ready(){
+    alert("Order Ready!");
+}
+</script>
+
+</body>
+</html>

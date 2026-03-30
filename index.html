@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DTIG Cafeteria</title>
+</head>
+
+<body style="font-family: Arial; background:#f5f5f5;">
+
+<h1 style="text-align:center; color:#FC8019;">DTIG Cafeteria 🍽️</h1>
+
+<h3>Veg Burger - ₹60</h3>
+<button onclick="add('Veg Burger',60)">Add</button>
+
+<h3>Fries - ₹40</h3>
+<button onclick="add('Fries',40)">Add</button>
+
+<h3>Tea - ₹15</h3>
+<button onclick="add('Tea',15)">Add</button>
+
+<h2>Cart</h2>
+<ul id="cart"></ul>
+
+<button onclick="order()">Place Order</button>
+
+<script>
+let cart = [];
+
+function add(item, price){
+    cart.push({item, price});
+    display();
+}
+
+function display(){
+    let list = document.getElementById("cart");
+    list.innerHTML = "";
+    cart.forEach(i => {
+        let li = document.createElement("li");
+        li.innerText = i.item + " - ₹" + i.price;
+        list.appendChild(li);
+    });
+}
+
+function order(){
+    localStorage.setItem("order", JSON.stringify(cart));
+    alert("Order Placed!");
+}
+</script>
+
+</body>
+</html>
