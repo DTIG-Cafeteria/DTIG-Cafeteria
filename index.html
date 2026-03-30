@@ -7,7 +7,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
 
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
 <style>
@@ -17,59 +16,37 @@ body {font-family:Poppins;margin:0;background:#f5f5f5;}
 .container {padding:20px;text-align:center;}
 
 input {
-padding:10px;
-margin:10px;
-width:80%;
-border-radius:6px;
-border:1px solid #ccc;
+padding:10px;margin:10px;width:80%;
+border-radius:6px;border:1px solid #ccc;
 }
 
 button {
-background:#ff5200;
-color:white;
-border:none;
-padding:10px;
-width:85%;
-border-radius:6px;
-margin-top:10px;
+background:#ff5200;color:white;border:none;
+padding:10px;width:85%;border-radius:6px;margin-top:10px;
 }
 
-.link {
-color:#ff5200;
-cursor:pointer;
-margin-top:10px;
-display:block;
-}
+.link {color:#ff5200;cursor:pointer;margin-top:10px;display:block;}
 
 .grid {
 display:grid;
 grid-template-columns:repeat(2,1fr);
-gap:12px;
-padding:10px;
+gap:12px;padding:10px;
 }
 
 .card {
-background:white;
-border-radius:12px;
-padding:10px;
+background:white;border-radius:12px;padding:10px;
 box-shadow:0 4px 10px rgba(0,0,0,0.1);
 }
 
 .card img {
-width:100%;
-height:120px;
-object-fit:cover;
-border-radius:10px;
+width:100%;height:120px;object-fit:cover;border-radius:10px;
 }
 
 .cart {
-position:fixed;
-bottom:0;
-width:100%;
-background:white;
-padding:10px;
-display:flex;
-justify-content:space-between;
+position:fixed;bottom:0;width:100%;
+background:white;padding:10px;
+display:flex;justify-content:space-between;
+box-shadow:0 -2px 10px rgba(0,0,0,0.1);
 }
 </style>
 </head>
@@ -84,7 +61,6 @@ justify-content:space-between;
 <input id="loginPhone" placeholder="Mobile Number">
 <input id="loginPass" type="password" placeholder="Password">
 <button onclick="login()">Login</button>
-
 <span class="link" onclick="showSignup()">New user? Sign Up</span>
 </div>
 
@@ -95,7 +71,6 @@ justify-content:space-between;
 <input id="phone" placeholder="Mobile Number">
 <input id="password" type="password" placeholder="Password">
 <button onclick="signup()">Create Account</button>
-
 <span class="link" onclick="showLogin()">Already have account? Login</span>
 </div>
 
@@ -120,15 +95,15 @@ projectId: "dtig-cafeteria"
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// SWITCH UI
+// UI SWITCH
 function showSignup(){
-document.getElementById("login").style.display="none";
-document.getElementById("signup").style.display="block";
+login.style.display="none";
+signup.style.display="block";
 }
 
 function showLogin(){
-document.getElementById("signup").style.display="none";
-document.getElementById("login").style.display="block";
+signup.style.display="none";
+login.style.display="block";
 }
 
 // SIGNUP
@@ -138,9 +113,7 @@ let phone=document.getElementById("phone").value;
 let pass=document.getElementById("password").value;
 
 db.collection("users").doc(phone).set({
-name:name,
-phone:phone,
-password:pass
+name:name, phone:phone, password:pass
 }).then(()=>{
 alert("Account Created");
 showLogin();
@@ -156,21 +129,62 @@ db.collection("users").doc(phone).get()
 .then(doc=>{
 if(doc.exists && doc.data().password===pass){
 window.user=doc.data();
-document.getElementById("login").style.display="none";
-document.getElementById("app").style.display="block";
+login.style.display="none";
+app.style.display="block";
 }else{
 alert("Invalid Login");
 }
 });
 }
 
-// MENU
-const items=[
+// FULL MENU
+const items = [
+
 {name:"Tea",price:15,img:"https://images.unsplash.com/photo-1511920170033-f8396924c348"},
+{name:"Ginger Tea",price:20,img:"https://images.unsplash.com/photo-1582450871972-ab5ca641643d"},
+{name:"Coffee",price:20,img:"https://images.unsplash.com/photo-1509042239860-f550ce710b93"},
+
+{name:"Omelette",price:35,img:"https://images.unsplash.com/photo-1604908811889-1f6c3b9f3e1f"},
+{name:"Double Egg Omelette",price:45,img:"https://images.unsplash.com/photo-1613145993513-0d5e2e5b1a6c"},
+{name:"Bread Omelette",price:40,img:"https://images.unsplash.com/photo-1625944525903-b4b98a0b8b33"},
+{name:"Boiled Egg",price:15,img:"https://images.unsplash.com/photo-1604908554165-5f0c5d9d0c36"},
+
+{name:"Veg Sandwich",price:45,img:"https://images.unsplash.com/photo-1553909489-cd47e0ef937f"},
+{name:"Chicken Sandwich",price:70,img:"https://images.unsplash.com/photo-1550547660-d9450f859349"},
+{name:"Veg Wrap",price:60,img:"https://images.unsplash.com/photo-1601050690597-df0568f70950"},
+{name:"Chicken Wrap",price:90,img:"https://images.unsplash.com/photo-1608032077018-c9aad9565d29"},
+
 {name:"Veg Burger",price:60,img:"https://images.unsplash.com/photo-1550547660-d9450f859349"},
+{name:"Cheese Veg Burger",price:90,img:"https://images.unsplash.com/photo-1568901346375-23c9450c58cd"},
+{name:"Chicken Burger",price:80,img:"https://images.unsplash.com/photo-1568901346375-23c9450c58cd"},
+{name:"Crispy Chicken Burger",price:110,img:"https://images.unsplash.com/photo-1606755962773-d324e0a13086"},
+
 {name:"Fries",price:40,img:"https://images.unsplash.com/photo-1576107232684-1279f390859f"},
+{name:"Peri Peri Fries",price:50,img:"https://images.unsplash.com/photo-1585238342024-78d387f4a707"},
+{name:"Aloo Tikki",price:30,img:"https://images.unsplash.com/photo-1601050690117-94c9c4b1cdb7"},
+{name:"Potato Shots",price:60,img:"https://images.unsplash.com/photo-1606756790138-261d2b21cd3f"},
+
+{name:"Veg Momos",price:60,img:"https://images.unsplash.com/photo-1625944525903-b4b98a0b8b33"},
+{name:"Kurkure Veg Momos",price:90,img:"https://images.unsplash.com/photo-1625944525903-b4b98a0b8b33"},
 {name:"Chicken Momos",price:80,img:"https://images.unsplash.com/photo-1604908176997-125f25cc6f3d"},
-{name:"Paneer Tikka",price:120,img:"https://images.unsplash.com/photo-1603894584373-5ac82b2ae398"}
+{name:"Kurkure Chicken Momos",price:110,img:"https://images.unsplash.com/photo-1604908176997-125f25cc6f3d"},
+{name:"Veg Spring Roll",price:50,img:"https://images.unsplash.com/photo-1601050690117-94c9c4b1cdb7"},
+{name:"Paneer Spring Roll",price:70,img:"https://images.unsplash.com/photo-1601050690117-94c9c4b1cdb7"},
+{name:"Chicken Spring Roll",price:80,img:"https://images.unsplash.com/photo-1601050690117-94c9c4b1cdb7"},
+
+{name:"Cheese Corn Balls",price:100,img:"https://images.unsplash.com/photo-1606755962773-d324e0a13086"},
+{name:"Jalapeno Poppers",price:110,img:"https://images.unsplash.com/photo-1606755962773-d324e0a13086"},
+{name:"Onion Rings",price:80,img:"https://images.unsplash.com/photo-1585238342024-78d387f4a707"},
+{name:"Veg Cutlet",price:60,img:"https://images.unsplash.com/photo-1601050690117-94c9c4b1cdb7"},
+{name:"Paneer Tikka",price:120,img:"https://images.unsplash.com/photo-1603894584373-b4b98a0b8b33"},
+
+{name:"Chicken Nuggets",price:70,img:"https://images.unsplash.com/photo-1606756790138-261d2b21cd3f"},
+{name:"Chicken Popcorn",price:80,img:"https://images.unsplash.com/photo-1606756790138-261d2b21cd3f"},
+{name:"Chicken Wings",price:120,img:"https://images.unsplash.com/photo-1606755962773-d324e0a13086"},
+{name:"Chicken Strips",price:110,img:"https://images.unsplash.com/photo-1606756790138-261d2b21cd3f"},
+{name:"Chicken Seekh Kebab",price:110,img:"https://images.unsplash.com/photo-1606755962773-d324e0a13086"},
+{name:"Chicken Tikka",price:120,img:"https://images.unsplash.com/photo-1603894584373-5ac82b2ae398"}
+
 ];
 
 let cart=[];
@@ -186,7 +200,7 @@ html+=`
 <button onclick='add(${JSON.stringify(i)})'>Add</button>
 </div>`;
 });
-document.getElementById("menu").innerHTML=html;
+menu.innerHTML=html;
 }
 
 function add(i){
@@ -195,19 +209,18 @@ update();
 }
 
 function update(){
-document.getElementById("total").innerText=
-cart.reduce((s,i)=>s+i.price,0);
+total.innerText=cart.reduce((s,i)=>s+i.price,0);
 }
 
 // ORDER
 function placeOrder(){
-let total=cart.reduce((s,i)=>s+i.price,0);
+let totalAmt=cart.reduce((s,i)=>s+i.price,0);
 let token="DTIG"+Math.floor(Math.random()*9999);
 
 db.collection("orders").add({
 user:window.user.phone,
 items:cart,
-total:total,
+total:totalAmt,
 token:token,
 status:"Preparing"
 });
