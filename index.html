@@ -13,41 +13,90 @@
 body {font-family:Poppins;margin:0;background:#f5f5f5;}
 .header {background:#ff5200;color:white;padding:15px;text-align:center;font-size:20px;}
 
-.container {padding:20px;text-align:center;}
-
-input {
-padding:10px;margin:10px;width:80%;
-border-radius:6px;border:1px solid #ccc;
+/* BANNERS */
+.banner {
+display:flex;
+overflow-x:auto;
+gap:10px;
+padding:10px;
+}
+.banner img {
+width:300px;
+border-radius:12px;
 }
 
-button {
-background:#ff5200;color:white;border:none;
-padding:10px;width:85%;border-radius:6px;margin-top:10px;
+/* CATEGORY TABS */
+.tabs {
+display:flex;
+overflow-x:auto;
+background:white;
+padding:10px;
+position:sticky;
+top:0;
+z-index:10;
+}
+.tab {
+padding:8px 15px;
+background:#eee;
+border-radius:20px;
+margin-right:10px;
+cursor:pointer;
+white-space:nowrap;
+}
+.tab.active {
+background:#ff5200;
+color:white;
 }
 
-.link {color:#ff5200;cursor:pointer;margin-top:10px;display:block;}
-
+/* MENU */
 .grid {
 display:grid;
 grid-template-columns:repeat(2,1fr);
-gap:12px;padding:10px;
+gap:12px;
+padding:10px;
 }
 
 .card {
-background:white;border-radius:12px;padding:10px;
+background:white;
+border-radius:12px;
+padding:10px;
 box-shadow:0 4px 10px rgba(0,0,0,0.1);
+transition:0.3s;
 }
+.card:hover {transform:scale(1.05);}
 
 .card img {
-width:100%;height:120px;object-fit:cover;border-radius:10px;
+width:100%;
+height:120px;
+object-fit:cover;
+border-radius:10px;
 }
 
+button {
+background:#ff5200;
+color:white;
+border:none;
+padding:8px;
+width:100%;
+border-radius:6px;
+}
+
+/* CART */
 .cart {
-position:fixed;bottom:0;width:100%;
-background:white;padding:10px;
-display:flex;justify-content:space-between;
+position:fixed;
+bottom:0;
+width:100%;
+background:white;
+padding:10px;
+display:flex;
+justify-content:space-between;
 box-shadow:0 -2px 10px rgba(0,0,0,0.1);
 }
+
+/* LOGIN */
+.container {padding:20px;text-align:center;}
+input {padding:10px;margin:10px;width:80%;}
+.link {color:#ff5200;cursor:pointer;}
 </style>
 </head>
 
@@ -76,16 +125,29 @@ box-shadow:0 -2px 10px rgba(0,0,0,0.1);
 
 <!-- APP -->
 <div id="app" style="display:none;">
+
+<!-- BANNERS -->
+<div class="banner">
+<img src="https://images.unsplash.com/photo-1600891964599-f61ba0e24092">
+<img src="https://images.unsplash.com/photo-1550547660-d9450f859349">
+<img src="https://images.unsplash.com/photo-1606755962773-d324e0a13086">
+</div>
+
+<!-- CATEGORY TABS -->
+<div class="tabs" id="tabs"></div>
+
+<!-- MENU -->
 <div class="grid" id="menu"></div>
 
 <div class="cart">
 ₹<span id="total">0</span>
 <button onclick="placeOrder()">Order</button>
 </div>
+
 </div>
 
 <script>
-// FIREBASE CONFIG
+// FIREBASE
 const firebaseConfig = {
 apiKey: "AIzaSyAPvkEd6A6Gy2Ar7zuG_fCAPecuj2joFN4",
 authDomain: "dtig-cafeteria.firebaseapp.com",
@@ -95,29 +157,18 @@ projectId: "dtig-cafeteria"
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// UI SWITCH
-function showSignup(){
-login.style.display="none";
-signup.style.display="block";
-}
-
-function showLogin(){
-signup.style.display="none";
-login.style.display="block";
-}
+// AUTH UI
+function showSignup(){login.style.display="none";signup.style.display="block";}
+function showLogin(){signup.style.display="none";login.style.display="block";}
 
 // SIGNUP
 function signup(){
-let name=document.getElementById("name").value;
+let name=name.value;
 let phone=document.getElementById("phone").value;
-let pass=document.getElementById("password").value;
+let pass=password.value;
 
-db.collection("users").doc(phone).set({
-name:name, phone:phone, password:pass
-}).then(()=>{
-alert("Account Created");
-showLogin();
-});
+db.collection("users").doc(phone).set({name,phone,password:pass})
+.then(()=>{alert("Account Created");showLogin();});
 }
 
 // LOGIN
@@ -125,73 +176,50 @@ function login(){
 let phone=document.getElementById("loginPhone").value;
 let pass=document.getElementById("loginPass").value;
 
-db.collection("users").doc(phone).get()
-.then(doc=>{
+db.collection("users").doc(phone).get().then(doc=>{
 if(doc.exists && doc.data().password===pass){
 window.user=doc.data();
 login.style.display="none";
 app.style.display="block";
-}else{
-alert("Invalid Login");
-}
+loadTabs();
+loadMenu("All");
+}else alert("Invalid Login");
 });
 }
 
-// FULL MENU
+// MENU DATA WITH CATEGORY
 const items = [
+{name:"Tea",price:15,cat:"Beverages",img:"https://images.unsplash.com/photo-1511920170033-f8396924c348"},
+{name:"Coffee",price:20,cat:"Beverages",img:"https://images.unsplash.com/photo-1509042239860-f550ce710b93"},
 
-{name:"Tea",price:15,img:"https://images.unsplash.com/photo-1511920170033-f8396924c348"},
-{name:"Ginger Tea",price:20,img:"https://images.unsplash.com/photo-1582450871972-ab5ca641643d"},
-{name:"Coffee",price:20,img:"https://images.unsplash.com/photo-1509042239860-f550ce710b93"},
+{name:"Omelette",price:35,cat:"Eggs",img:"https://images.unsplash.com/photo-1604908811889-1f6c3b9f3e1f"},
 
-{name:"Omelette",price:35,img:"https://images.unsplash.com/photo-1604908811889-1f6c3b9f3e1f"},
-{name:"Double Egg Omelette",price:45,img:"https://images.unsplash.com/photo-1613145993513-0d5e2e5b1a6c"},
-{name:"Bread Omelette",price:40,img:"https://images.unsplash.com/photo-1625944525903-b4b98a0b8b33"},
-{name:"Boiled Egg",price:15,img:"https://images.unsplash.com/photo-1604908554165-5f0c5d9d0c36"},
+{name:"Veg Burger",price:60,cat:"Burgers",img:"https://images.unsplash.com/photo-1550547660-d9450f859349"},
+{name:"Chicken Burger",price:80,cat:"Burgers",img:"https://images.unsplash.com/photo-1568901346375-23c9450c58cd"},
 
-{name:"Veg Sandwich",price:45,img:"https://images.unsplash.com/photo-1553909489-cd47e0ef937f"},
-{name:"Chicken Sandwich",price:70,img:"https://images.unsplash.com/photo-1550547660-d9450f859349"},
-{name:"Veg Wrap",price:60,img:"https://images.unsplash.com/photo-1601050690597-df0568f70950"},
-{name:"Chicken Wrap",price:90,img:"https://images.unsplash.com/photo-1608032077018-c9aad9565d29"},
+{name:"Fries",price:40,cat:"Snacks",img:"https://images.unsplash.com/photo-1576107232684-1279f390859f"},
 
-{name:"Veg Burger",price:60,img:"https://images.unsplash.com/photo-1550547660-d9450f859349"},
-{name:"Cheese Veg Burger",price:90,img:"https://images.unsplash.com/photo-1568901346375-23c9450c58cd"},
-{name:"Chicken Burger",price:80,img:"https://images.unsplash.com/photo-1568901346375-23c9450c58cd"},
-{name:"Crispy Chicken Burger",price:110,img:"https://images.unsplash.com/photo-1606755962773-d324e0a13086"},
+{name:"Veg Momos",price:60,cat:"Momos",img:"https://images.unsplash.com/photo-1625944525903-b4b98a0b8b33"},
+{name:"Chicken Momos",price:80,cat:"Momos",img:"https://images.unsplash.com/photo-1604908176997-125f25cc6f3d"},
 
-{name:"Fries",price:40,img:"https://images.unsplash.com/photo-1576107232684-1279f390859f"},
-{name:"Peri Peri Fries",price:50,img:"https://images.unsplash.com/photo-1585238342024-78d387f4a707"},
-{name:"Aloo Tikki",price:30,img:"https://images.unsplash.com/photo-1601050690117-94c9c4b1cdb7"},
-{name:"Potato Shots",price:60,img:"https://images.unsplash.com/photo-1606756790138-261d2b21cd3f"},
-
-{name:"Veg Momos",price:60,img:"https://images.unsplash.com/photo-1625944525903-b4b98a0b8b33"},
-{name:"Kurkure Veg Momos",price:90,img:"https://images.unsplash.com/photo-1625944525903-b4b98a0b8b33"},
-{name:"Chicken Momos",price:80,img:"https://images.unsplash.com/photo-1604908176997-125f25cc6f3d"},
-{name:"Kurkure Chicken Momos",price:110,img:"https://images.unsplash.com/photo-1604908176997-125f25cc6f3d"},
-{name:"Veg Spring Roll",price:50,img:"https://images.unsplash.com/photo-1601050690117-94c9c4b1cdb7"},
-{name:"Paneer Spring Roll",price:70,img:"https://images.unsplash.com/photo-1601050690117-94c9c4b1cdb7"},
-{name:"Chicken Spring Roll",price:80,img:"https://images.unsplash.com/photo-1601050690117-94c9c4b1cdb7"},
-
-{name:"Cheese Corn Balls",price:100,img:"https://images.unsplash.com/photo-1606755962773-d324e0a13086"},
-{name:"Jalapeno Poppers",price:110,img:"https://images.unsplash.com/photo-1606755962773-d324e0a13086"},
-{name:"Onion Rings",price:80,img:"https://images.unsplash.com/photo-1585238342024-78d387f4a707"},
-{name:"Veg Cutlet",price:60,img:"https://images.unsplash.com/photo-1601050690117-94c9c4b1cdb7"},
-{name:"Paneer Tikka",price:120,img:"https://images.unsplash.com/photo-1603894584373-b4b98a0b8b33"},
-
-{name:"Chicken Nuggets",price:70,img:"https://images.unsplash.com/photo-1606756790138-261d2b21cd3f"},
-{name:"Chicken Popcorn",price:80,img:"https://images.unsplash.com/photo-1606756790138-261d2b21cd3f"},
-{name:"Chicken Wings",price:120,img:"https://images.unsplash.com/photo-1606755962773-d324e0a13086"},
-{name:"Chicken Strips",price:110,img:"https://images.unsplash.com/photo-1606756790138-261d2b21cd3f"},
-{name:"Chicken Seekh Kebab",price:110,img:"https://images.unsplash.com/photo-1606755962773-d324e0a13086"},
-{name:"Chicken Tikka",price:120,img:"https://images.unsplash.com/photo-1603894584373-5ac82b2ae398"}
-
+{name:"Paneer Tikka",price:120,cat:"Starters",img:"https://images.unsplash.com/photo-1603894584373-5ac82b2ae398"},
+{name:"Chicken Wings",price:120,cat:"Starters",img:"https://images.unsplash.com/photo-1606755962773-d324e0a13086"}
 ];
 
-let cart=[];
-
-function loadMenu(){
+// CATEGORY TABS
+function loadTabs(){
+let cats=["All",...new Set(items.map(i=>i.cat))];
 let html="";
-items.forEach(i=>{
+cats.forEach(c=>{
+html+=`<div class="tab" onclick="loadMenu('${c}')">${c}</div>`;
+});
+tabs.innerHTML=html;
+}
+
+// MENU FILTER
+function loadMenu(cat){
+let html="";
+items.filter(i=>cat==="All"||i.cat===cat).forEach(i=>{
 html+=`
 <div class="card">
 <img src="${i.img}">
@@ -203,14 +231,10 @@ html+=`
 menu.innerHTML=html;
 }
 
-function add(i){
-cart.push(i);
-update();
-}
-
-function update(){
-total.innerText=cart.reduce((s,i)=>s+i.price,0);
-}
+// CART
+let cart=[];
+function add(i){cart.push(i);update();}
+function update(){total.innerText=cart.reduce((s,i)=>s+i.price,0);}
 
 // ORDER
 function placeOrder(){
@@ -229,8 +253,6 @@ alert("Order placed! Token: "+token);
 cart=[];
 update();
 }
-
-loadMenu();
 </script>
 
 </body>
