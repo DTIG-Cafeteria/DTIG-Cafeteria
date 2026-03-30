@@ -2,42 +2,106 @@
 <html>
 <head>
     <title>DTIG Cafeteria</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            font-family: Arial;
+            margin:0;
+            background:#f8f8f8;
+        }
+
+        header {
+            background:#FC8019;
+            color:white;
+            padding:15px;
+            font-size:22px;
+            text-align:center;
+        }
+
+        .container {
+            padding:10px;
+        }
+
+        .card {
+            background:white;
+            border-radius:12px;
+            padding:15px;
+            margin-bottom:10px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            box-shadow:0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        button {
+            background:#FC8019;
+            color:white;
+            border:none;
+            padding:8px 12px;
+            border-radius:6px;
+        }
+
+        .cart {
+            position:fixed;
+            bottom:0;
+            width:100%;
+            background:white;
+            padding:10px;
+            box-shadow:0 -2px 5px rgba(0,0,0,0.2);
+        }
+    </style>
 </head>
 
-<body style="font-family: Arial; background:#f5f5f5;">
+<body>
 
-<h1 style="text-align:center; color:#FC8019;">DTIG Cafeteria 🍽️</h1>
+<header>DTIG Cafeteria 🍽️</header>
 
-<h3>Veg Burger - ₹60</h3>
-<button onclick="add('Veg Burger',60)">Add</button>
+<div class="container">
 
-<h3>Fries - ₹40</h3>
-<button onclick="add('Fries',40)">Add</button>
+<div class="card">
+    <div>
+        <b>Veg Burger</b><br>₹60
+    </div>
+    <button onclick="add('Veg Burger',60)">Add</button>
+</div>
 
-<h3>Tea - ₹15</h3>
-<button onclick="add('Tea',15)">Add</button>
+<div class="card">
+    <div>
+        <b>Fries</b><br>₹40
+    </div>
+    <button onclick="add('Fries',40)">Add</button>
+</div>
 
-<h2>Cart</h2>
-<ul id="cart"></ul>
+<div class="card">
+    <div>
+        <b>Veg Momos</b><br>₹60
+    </div>
+    <button onclick="add('Veg Momos',60)">Add</button>
+</div>
 
-<button onclick="order()">Place Order</button>
+<div class="card">
+    <div>
+        <b>Tea</b><br>₹15
+    </div>
+    <button onclick="add('Tea',15)">Add</button>
+</div>
+
+</div>
+
+<div class="cart">
+    <span id="total">Total: ₹0</span>
+    <button onclick="order()">Place Order</button>
+</div>
 
 <script>
 let cart = [];
+let total = 0;
 
 function add(item, price){
-    cart.push({item, price});
-    display();
-}
-
-function display(){
-    let list = document.getElementById("cart");
-    list.innerHTML = "";
-    cart.forEach(i => {
-        let li = document.createElement("li");
-        li.innerText = i.item + " - ₹" + i.price;
-        list.appendChild(li);
-    });
+    cart.push(item);
+    total += price;
+    document.getElementById("total").innerText = "Total: ₹" + total;
 }
 
 function order(){
