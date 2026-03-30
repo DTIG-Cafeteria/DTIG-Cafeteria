@@ -11,14 +11,10 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
-<!-- Razorpay -->
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-
 <style>
-body {font-family:Poppins;margin:0;background:#fafafa;}
-.header {background:#ff5200;color:white;padding:15px;text-align:center;}
-.login {padding:20px;text-align:center;}
-input {padding:10px;margin:5px;width:80%;}
+body {font-family:Poppins;margin:0;background:#fafafa;text-align:center;}
+.header {background:#ff5200;color:white;padding:15px;font-size:20px;}
+input {padding:10px;margin:10px;width:80%;}
 button {padding:10px;background:#ff5200;color:white;border:none;}
 .grid {display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:10px;}
 .card {background:white;padding:10px;border-radius:10px;}
@@ -30,19 +26,26 @@ button {padding:10px;background:#ff5200;color:white;border:none;}
 
 <div class="header">🍽️ DTIG Cafeteria</div>
 
-<div id="loginDiv" class="login">
-  <h3>Login</h3>
-  <input id="email" placeholder="Email"><br>
-  <input id="password" type="password" placeholder="Password"><br>
-  <button onclick="login()">Login</button>
+<!-- LOGIN -->
+<div id="login">
+  <h3>Login / Signup</h3>
+  <input id="phone" placeholder="Enter mobile number"><br>
+  <div id="recaptcha"></div>
+  <button onclick="sendOTP()">Send OTP</button>
+
+  <div id="otpSection" style="display:none;">
+    <input id="otp" placeholder="Enter OTP"><br>
+    <button onclick="verifyOTP()">Verify OTP</button>
+  </div>
 </div>
 
+<!-- APP -->
 <div id="app" style="display:none;">
   <div class="grid" id="menu"></div>
 
   <div class="cart">
     ₹<span id="total">0</span>
-    <button onclick="pay()">Pay</button>
+    <button onclick="placeOrder()">Order</button>
   </div>
 </div>
 
@@ -58,22 +61,36 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-let cart=[];
+// Recaptcha
+window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha');
 
-// LOGIN
-function login(){
-  let email=document.getElementById("email").value;
-  let pass=document.getElementById("password").value;
+// Send OTP
+function sendOTP(){
+  let phone = document.getElementById("phone").value;
+  phone = "+91" + phone;
 
-  auth.signInWithEmailAndPassword(email,pass)
+  auth.signInWithPhoneNumber(phone, window.recaptchaVerifier)
+  .then(res=>{
+    window.confirmationResult = res;
+    document.getElementById("otpSection").style.display="block";
+  })
+  .catch(err=>alert(err.message));
+}
+
+// Verify OTP
+function verifyOTP(){
+  let otp = document.getElementById("otp").value;
+
+  confirmationResult.confirm(otp)
   .then(()=>{
-    document.getElementById("loginDiv").style.display="none";
+    document.getElementById("login").style.display="none";
     document.getElementById("app").style.display="block";
   })
-  .catch(()=>alert("Login failed"));
+  .catch(()=>alert("Invalid OTP"));
 }
 
 // MENU
+let cart=[];
 const items=[
 {name:"Tea",price:10},
 {name:"Burger",price:80},
@@ -101,31 +118,17 @@ document.getElementById("total").innerText=
 cart.reduce((s,i)=>s+i.price,0);
 }
 
-// PAYMENT
-function pay(){
+// PLACE ORDER
+function placeOrder(){
 let total=cart.reduce((s,i)=>s+i.price,0);
-
-var options={
-key:"YOUR_RAZORPAY_KEY",
-amount:total*100,
-currency:"INR",
-handler:function(){
-  saveOrder();
-}
-};
-
-new Razorpay(options).open();
-}
-
-// SAVE ORDER
-function saveOrder(){
 let token="DTIG"+Math.floor(Math.random()*9999);
 
 db.collection("orders").add({
 items:cart,
+total:total,
 token:token,
-status:"Preparing",
-user:auth.currentUser.email
+phone:auth.currentUser.phoneNumber,
+status:"Preparing"
 });
 
 alert("Order placed! Token:"+token);
