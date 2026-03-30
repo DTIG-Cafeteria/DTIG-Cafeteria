@@ -1,169 +1,169 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DTIG Cafeteria</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600;700&display=swap" rel="stylesheet">
+<!-- Google Font -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
 <style>
-
 body {
-  font-family:'Poppins', sans-serif;
-  margin:0;
-  background:#fafafa;
+  font-family: 'Poppins', sans-serif;
+  margin: 0;
+  background: #f8f8f8;
 }
 
-/* HERO */
-.hero {
-  background:linear-gradient(135deg,#FC8019,#ff9f43);
-  color:white;
-  padding:30px 20px;
-  border-bottom-left-radius:30px;
-  border-bottom-right-radius:30px;
+header {
+  background: #ff5200;
+  color: white;
+  padding: 15px;
+  font-size: 22px;
+  text-align: center;
+  font-weight: bold;
 }
 
-.hero h1 {margin:0; font-size:24px;}
-.hero p {margin:5px 0 0; opacity:0.9;}
-
-/* CATEGORY */
-.categories {
-  display:flex;
-  overflow-x:auto;
-  padding:15px;
-}
-
-.cat {
-  background:white;
-  padding:10px 15px;
-  margin-right:10px;
-  border-radius:20px;
-  box-shadow:0 3px 10px rgba(0,0,0,0.1);
-  cursor:pointer;
-}
-
-/* GRID */
-.grid {
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:15px;
-  padding:15px;
+.container {
+  padding: 15px;
 }
 
 .card {
-  background:white;
-  border-radius:15px;
-  overflow:hidden;
-  box-shadow:0 5px 15px rgba(0,0,0,0.08);
-  transition:0.3s;
-}
-
-.card:hover {
-  transform:scale(1.03);
+  background: white;
+  border-radius: 12px;
+  padding: 10px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
 }
 
 .card img {
-  width:100%;
-  height:120px;
-  object-fit:cover;
+  width: 80px;
+  border-radius: 10px;
 }
 
-.card-body {
-  padding:10px;
+.card button {
+  background: #ff5200;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
 }
 
-.title {
-  font-weight:600;
-}
-
-.price {
-  color:#555;
-  margin:5px 0;
-}
-
-.btn {
-  background:#FC8019;
-  color:white;
-  border:none;
-  padding:6px 10px;
-  border-radius:8px;
-  width:100%;
-}
-
-/* CART FLOAT */
 .cart {
-  position:fixed;
-  bottom:20px;
-  right:20px;
-  background:#FC8019;
-  color:white;
-  padding:15px;
-  border-radius:50%;
-  font-size:18px;
-  box-shadow:0 5px 15px rgba(0,0,0,0.2);
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: white;
+  padding: 10px;
+  box-shadow: 0 -3px 10px rgba(0,0,0,0.1);
+  display: flex;
+  justify-content: space-between;
 }
 
+.order-btn {
+  background: green;
+  color: white;
+  padding: 10px;
+  border-radius: 6px;
+  border: none;
+}
 </style>
 </head>
 
 <body>
 
-<div class="hero">
-  <h1>🍽️ DTIG Cafeteria</h1>
-  <p>Fresh • Fast • Affordable</p>
+<header>🍽️ DTIG Cafeteria</header>
+
+<div class="container" id="menu"></div>
+
+<div class="cart">
+  <span>Total: ₹<span id="total">0</span></span>
+  <button class="order-btn" onclick="placeOrder()">Place Order</button>
 </div>
-
-<div class="categories">
-  <div class="cat">🔥 Popular</div>
-  <div class="cat">☕ Beverages</div>
-  <div class="cat">🍔 Snacks</div>
-  <div class="cat">🍗 Chicken</div>
-</div>
-
-<div class="grid" id="menu"></div>
-
-<div class="cart" onclick="openCart()">🛒</div>
 
 <script>
+// 🔥 Firebase Config
+const firebaseConfig = {
+  apiKey: "AIzaSyAPvkEd6A6Gy2Ar7zuG_fCAPecuj2joFN4",
+  authDomain: "dtig-cafeteria.firebaseapp.com",
+  projectId: "dtig-cafeteria",
+  storageBucket: "dtig-cafeteria.firebasestorage.app",
+  messagingSenderId: "840733763257",
+  appId: "1:840733763257:web:43fa340a01303ca4171d68"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
 let cart = [];
 
 const items = [
-{name:"Tea", price:15, img:"https://source.unsplash.com/300x200/?tea"},
-{name:"Coffee", price:20, img:"https://source.unsplash.com/300x200/?coffee"},
-{name:"Burger", price:80, img:"https://source.unsplash.com/300x200/?burger"},
-{name:"Fries", price:40, img:"https://source.unsplash.com/300x200/?fries"},
-{name:"Momos", price:60, img:"https://source.unsplash.com/300x200/?momos"},
-{name:"Omelette", price:35, img:"https://source.unsplash.com/300x200/?omelette"}
+  {name:"Tea", price:10, img:"https://i.imgur.com/0umadnY.jpg"},
+  {name:"Coffee", price:15, img:"https://i.imgur.com/1GrakTl.jpg"},
+  {name:"Omelette", price:40, img:"https://i.imgur.com/Zz4Q8vF.jpg"},
+  {name:"Veg Meal", price:80, img:"https://i.imgur.com/eTmWoAN.jpg"},
+  {name:"Chicken Meal", price:110, img:"https://i.imgur.com/5Aqgz7o.jpg"}
 ];
 
 function loadMenu(){
   let html="";
-  items.forEach((item,i)=>{
+  items.forEach(i=>{
     html+=`
     <div class="card">
-      <img src="${item.img}">
-      <div class="card-body">
-        <div class="title">${item.name}</div>
-        <div class="price">₹${item.price}</div>
-        <button class="btn" onclick="add(${i})">Add to Cart</button>
+      <img src="${i.img}">
+      <div>
+        <h4>${i.name}</h4>
+        <p>₹${i.price}</p>
       </div>
+      <button onclick='addItem(${JSON.stringify(i)})'>Add</button>
     </div>`;
   });
   document.getElementById("menu").innerHTML=html;
 }
 
-function add(i){
-  cart.push(items[i]);
-  alert("Added to cart ✅");
+function addItem(item){
+  cart.push(item);
+  updateTotal();
 }
 
-function openCart(){
-  alert("Cart feature next upgrade 🔥");
+function updateTotal(){
+  let total=cart.reduce((sum,i)=>sum+i.price,0);
+  document.getElementById("total").innerText=total;
+}
+
+function placeOrder(){
+  let phone=prompt("Enter WhatsApp Number:");
+
+  let total=cart.reduce((sum,i)=>sum+i.price,0);
+  let token="DTIG"+Math.floor(1000+Math.random()*9000);
+
+  db.collection("orders").add({
+    items:cart,
+    total:total,
+    token:token,
+    phone:phone,
+    status:"Preparing",
+    createdAt:new Date()
+  }).then(()=>{
+
+    let msg=`Order Confirmed 🍽️\nToken:${token}\nAmount:₹${total}`;
+    window.open(`https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`);
+
+    alert("Order Placed! Token: "+token);
+    cart=[];
+    updateTotal();
+  });
 }
 
 loadMenu();
-
 </script>
 
 </body>
